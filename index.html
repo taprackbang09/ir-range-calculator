@@ -1,0 +1,1469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>IR Identification Range</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #f5f5f0;
+    --fg: #1a1a18;
+    --fg-dim: #5c5c56;
+    --surface: #ffffff;
+    --surface-alt: #eaeae4;
+    --border: #d0d0c8;
+    --accent: #b85c2c;
+    --accent-light: #f0ddd0;
+    --good: #2d7a3a;
+    --warn: #b8860b;
+    --danger: #b83030;
+    --silhouette: #2a2a28;
+    --dim-line: #888;
+    --mono: 'JetBrains Mono', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a1a18; --fg: #e8e8e0; --fg-dim: #8a8a80;
+      --surface: #252522; --surface-alt: #2e2e2a; --border: #3a3a35;
+      --accent: #d4804a; --accent-light: #3a2a1e;
+      --good: #4aad5a; --warn: #d4a020; --danger: #d45050;
+      --silhouette: #d0d0c8; --dim-line: #777;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1a18; --fg: #e8e8e0; --fg-dim: #8a8a80;
+    --surface: #252522; --surface-alt: #2e2e2a; --border: #3a3a35;
+    --accent: #d4804a; --accent-light: #3a2a1e;
+    --good: #4aad5a; --warn: #d4a020; --danger: #d45050;
+    --silhouette: #d0d0c8; --dim-line: #777;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: var(--sans);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 1.5rem 3rem;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  h1 {
+    font-family: var(--mono); font-size: 1.25rem; font-weight: 700;
+    letter-spacing: -0.02em; margin: 0 0 0.25rem; text-wrap: balance;
+  }
+  .subtitle { font-size: 0.8rem; color: var(--fg-dim); margin: 0 0 1.5rem; }
+
+  .params {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+  }
+  .param-group {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.75rem;
+  }
+  .param-group label {
+    display: block; font-size: 0.65rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--fg-dim); margin-bottom: 0.35rem;
+  }
+  .param-group input, .param-group select {
+    width: 100%; box-sizing: border-box;
+    font-family: var(--mono); font-size: 0.85rem;
+    padding: 0.4rem 0.5rem; background: var(--surface-alt);
+    color: var(--fg); border: 1px solid var(--border); border-radius: 4px;
+  }
+  .param-group input:focus, .param-group select:focus {
+    outline: 2px solid var(--accent); outline-offset: -1px;
+  }
+
+  .section-label {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent);
+    margin: 1.5rem 0 0.75rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .table-wrap {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
+  }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 580px; }
+  thead th {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-dim);
+    background: var(--surface-alt); padding: 0.5rem 0.65rem; text-align: right;
+    border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0;
+  }
+  thead th:first-child { text-align: left; }
+  tbody td {
+    padding: 0.5rem 0.65rem; text-align: right;
+    font-family: var(--mono); font-size: 0.85rem; border-bottom: 1px solid var(--border);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child {
+    text-align: left; font-weight: 600; font-size: 0.8rem;
+    color: var(--fg); white-space: nowrap;
+  }
+  tbody td .target-dim {
+    font-weight: 400; font-size: 0.7rem; color: var(--fg-dim);
+    display: block; margin-top: 0.1rem;
+  }
+  .range-good { color: var(--good); font-weight: 600; }
+  .range-warn { color: var(--warn); font-weight: 600; }
+  .range-danger { color: var(--danger); }
+
+  .formula-note {
+    margin-top: 1.25rem; font-size: 0.75rem; color: var(--fg-dim); line-height: 1.6;
+  }
+  .formula-note code {
+    font-family: var(--mono); font-size: 0.72rem;
+    background: var(--surface-alt); padding: 0.15em 0.35em; border-radius: 3px; color: var(--fg);
+  }
+
+  .aspect-toggle {
+    display: flex; flex-wrap: wrap; gap: 2px;
+    background: var(--surface-alt); border-radius: 5px; padding: 2px; width: fit-content;
+  }
+  .aspect-toggle button {
+    font-family: var(--sans); font-size: 0.72rem; font-weight: 500;
+    padding: 0.3rem 0.6rem; border: none; border-radius: 4px;
+    background: transparent; color: var(--fg-dim); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .aspect-toggle button.active { background: var(--accent); color: #fff; }
+  .aspect-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .aspect-note { font-size: 0.72rem; color: var(--fg-dim); margin-top: 0.4rem; font-style: italic; }
+
+  .lens-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+  .lens-chip {
+    font-family: var(--mono); font-size: 0.75rem; padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--fg); cursor: pointer; transition: all 0.15s;
+  }
+  .lens-chip.active {
+    background: var(--accent-light); border-color: var(--accent);
+    color: var(--accent); font-weight: 600;
+  }
+  .lens-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .custom-lens { display: flex; align-items: center; gap: 0.3rem; }
+  .custom-lens input {
+    font-family: var(--mono); font-size: 0.75rem; width: 4.5rem;
+    padding: 0.3rem 0.4rem; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--fg);
+  }
+  .custom-lens input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .custom-lens span { font-size: 0.7rem; color: var(--fg-dim); }
+
+  .pitch-toggle {
+    display: flex; gap: 2px; background: var(--surface-alt);
+    border-radius: 5px; padding: 2px; width: fit-content;
+  }
+  .pitch-toggle button {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 500;
+    padding: 0.3rem 0.7rem; border: none; border-radius: 4px;
+    background: transparent; color: var(--fg-dim); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .pitch-toggle button.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+  .size-compare {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1rem 0.5rem; margin-bottom: 1.5rem; overflow-x: auto;
+  }
+  .size-canvas { display: block; margin: 0 auto; }
+  .size-note {
+    font-size: 0.68rem; color: var(--fg-dim); text-align: center;
+    margin-top: 0.5rem; font-style: italic;
+  }
+
+  /* ---- IR sensor view simulator ---- */
+  .sim-intro { font-size: 0.78rem; color: var(--fg-dim); margin: -0.25rem 0 1rem; max-width: 72ch; }
+  .ir-presets { margin-bottom: 0.75rem; }
+  .ir-sliders {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem; margin-bottom: 1rem;
+  }
+  .ir-slider {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.6rem 0.75rem; min-width: 0;
+  }
+  .ir-slider .lab {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;
+    font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--fg-dim); margin-bottom: 0.35rem;
+  }
+  .ir-slider .lab b {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--fg);
+    text-transform: none; letter-spacing: 0; text-align: right;
+  }
+  .ir-slider input[type=range] { width: 100%; accent-color: var(--accent); }
+  .range-num { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.35rem; font-size: 0.7rem; color: var(--fg-dim); }
+  .range-num input {
+    width: 6.5rem; font-family: var(--mono); font-size: 0.78rem; padding: 0.25rem 0.4rem;
+    background: var(--surface-alt); color: var(--fg); border: 1px solid var(--border); border-radius: 4px;
+  }
+  .ir-stage { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 0.75rem; align-items: start; }
+  @media (max-width: 760px) { .ir-stage { grid-template-columns: minmax(0, 1fr); } }
+  .ir-panel {
+    margin: 0; background: var(--ir-black); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; min-width: 0;
+  }
+  .ir-panel canvas { display: block; width: 100%; height: auto; max-width: 100%; }
+  .ir-panel canvas.px { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .ir-panel figcaption {
+    background: var(--surface); color: var(--fg-dim); font-size: 0.66rem;
+    padding: 0.4rem 0.6rem; font-family: var(--mono); border-top: 1px solid var(--border);
+  }
+  .ir-frame-wrap { position: relative; }
+  .ir-box {
+    position: absolute; border: 1px solid var(--ir-reticle); pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
+  }
+  .ir-readout {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px; background: var(--border); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; margin-top: 0.75rem;
+  }
+  .ir-readout div { background: var(--surface); padding: 0.5rem 0.65rem; min-width: 0; }
+  .ir-readout span.k {
+    display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--fg-dim); font-weight: 600; margin-bottom: 0.1rem;
+  }
+  .ir-readout b { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  @media (max-width: 560px) { .ir-readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  table.mx { min-width: 950px; }
+  table.mx thead th { text-align: center; white-space: pre-line; line-height: 1.35; }
+  table.mx thead th:first-child { text-align: left; }
+  table.mx tbody td { text-align: center; padding: 0.4rem 0.3rem; vertical-align: top; }
+  table.mx tbody td:first-child { text-align: left; vertical-align: middle; padding-left: 0.65rem; }
+  .tile {
+    display: block; width: 88px; height: auto; aspect-ratio: 5 / 4; max-width: 100%; margin: 0 auto;
+    background: var(--ir-black); border-radius: 3px; cursor: pointer;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .tile.smooth { image-rendering: auto; }
+  .tile:hover, .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .tcap { font-size: 0.6rem; color: var(--fg-dim); margin-top: 0.25rem; white-space: nowrap; font-family: var(--mono); }
+  .badge {
+    display: inline-block; min-width: 1.2em; padding: 0 0.25em; border-radius: 3px;
+    font-weight: 700; font-size: 0.58rem; color: #fff; margin-left: 0.3em; text-align: center;
+  }
+  .badge.I { background: var(--good); }
+  .badge.R { background: var(--warn); }
+  .badge.D { background: var(--accent); }
+  .badge.none { background: var(--danger); }
+  .slim-select {
+    width: 100%; font-family: var(--mono); font-size: 0.82rem; padding: 0.35rem 0.45rem;
+    background: var(--surface-alt); color: var(--fg); border: 1px solid var(--border); border-radius: 4px;
+  }
+  .jump-btn {
+    margin-left: auto; font-family: var(--sans); font-size: 0.7rem; font-weight: 600;
+    padding: 0.3rem 0.6rem; border: 1px solid var(--accent); border-radius: 4px;
+    background: var(--accent-light); color: var(--accent); cursor: pointer;
+  }
+  .jump-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #results-table td.cell { cursor: pointer; }
+  #results-table td.cell:hover { background: var(--surface-alt); }
+  #results-table td.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+  #results-table tr.sel-row td:first-child { color: var(--accent); }
+  #results-table .lim { display: block; font-size: 0.6rem; font-weight: 400; color: var(--fg-dim); margin-top: 0.1rem; }
+  .ok { color: var(--good); } .bad { color: var(--danger); }
+  .ir-readout .lim { display: block; font-family: var(--sans); font-size: 0.64rem; font-weight: 400; color: var(--fg-dim); margin-top: 0.1rem; }
+  #johnson-presets button { white-space: nowrap; padding: 0.3rem 0.5rem; }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 0.9rem; font-size: 0.68rem; color: var(--fg-dim); margin-top: 0.5rem; }
+  .formula-card {
+    margin-top: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.85rem 1rem; font-size: 0.78rem; line-height: 1.65; overflow-x: auto;
+  }
+  .formula-card h3 { margin: 0 0 0.4rem; font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .formula-card .eq { font-family: var(--mono); font-size: 0.78rem; white-space: nowrap; color: var(--fg); }
+  .formula-card .eq b { color: var(--accent); }
+  .formula-card .why { color: var(--fg-dim); font-size: 0.72rem; margin: 0.1rem 0 0.55rem; }
+  .formula-card table { min-width: 0; width: auto; margin: 0.3rem 0 0.6rem; }
+  .formula-card td { font-family: var(--mono); font-size: 0.76rem; padding: 0.2rem 0.9rem 0.2rem 0; text-align: left; border-bottom: 1px solid var(--border); }
+  .formula-card td:first-child { font-weight: 400; font-size: 0.76rem; white-space: normal; }
+  :root { --ir-black: #050505; --ir-reticle: #39e27a; }
+</style>
+
+<div class="wrap">
+  <h1>IR Target Identification Range Calculator</h1>
+  <p class="subtitle">Max detection / identification range from a 3D thermal model · Infisense Mini2 640 · interchangeable LWIR lenses</p>
+
+  <div class="section-label">Camera parameters</div>
+  <div class="params">
+    <div class="param-group">
+      <label>Camera</label>
+      <input type="text" value="Infisense Mini2 640" readonly style="opacity:0.7">
+    </div>
+    <div class="param-group">
+      <label for="res-h">Resolution H (px)</label>
+      <input type="number" id="res-h" value="640" min="1" step="1">
+    </div>
+    <div class="param-group">
+      <label for="res-v">Resolution V (px)</label>
+      <input type="number" id="res-v" value="512" min="1" step="1">
+    </div>
+    <div class="param-group">
+      <label>Pixel pitch (μm)</label>
+      <div class="pitch-toggle" id="pitch-toggle">
+        <button data-pitch="8">8 μm</button>
+        <button class="active" data-pitch="12">12 μm</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="section-label">Target &amp; conditions</div>
+  <div class="params">
+    <div class="param-group"><label for="ir-target">Target in sensor view</label><select id="ir-target"></select></div>
+    <div class="param-group"><label for="ir-atm">Atmosphere · β /km</label>
+      <select id="ir-atm">
+        <option value="0.1">Very clear · 0.1</option>
+        <option value="0.2" selected>Clear · 0.2</option>
+        <option value="0.4">Humid haze · 0.4</option>
+        <option value="0.9">Haze, drizzle · 0.9</option>
+        <option value="2">Rain, fog · 2</option>
+      </select></div>
+    <div class="param-group"><label for="ir-amb">Ambient air (°C)</label><input type="number" id="ir-amb" value="0" step="1"></div>
+    <div class="param-group"><label for="ir-netd">NETD (mK)</label><input type="number" id="ir-netd" value="50" min="0" step="5"></div>
+    <div class="param-group"><label for="ir-palette">Palette</label>
+      <select id="ir-palette"><option value="white">White-hot</option><option value="black">Black-hot</option><option value="iron">Ironbow</option></select></div>
+  </div>
+
+  <div class="section-label">Range criterion</div>
+  <div class="params">
+    <div class="param-group"><label for="crit-metric">Size measure</label>
+      <select id="crit-metric"><option value="crit" selected>Critical dim √A</option><option value="ext">Largest extent</option></select></div>
+    <div class="param-group"><label for="n-pixels">N pixels required</label><input type="number" id="n-pixels" value="1" min="0.5" step="0.5"></div>
+    <div class="param-group"><label for="min-snr">Min peak SNR · 0 = off</label><input type="number" id="min-snr" value="5" min="0" step="1"></div>
+    <div class="param-group"><label>Presets · √A</label>
+      <div class="pitch-toggle" id="johnson-presets"><button type="button" data-n="1" title="Assumption: one pixel is enough to see the drone">Seen 1</button><button type="button" data-n="2">D 2</button><button type="button" data-n="8">R 8</button><button type="button" data-n="12.8">I 12.8</button></div></div>
+  </div>
+
+  <div class="section-label">Engagement aspect</div>
+  <div class="aspect-toggle ir-presets" id="ir-presets"></div>
+  <div class="ir-sliders">
+    <div class="ir-slider">
+      <div class="lab"><label for="ir-az">Azimuth (0° = nose-on)</label><b id="ir-az-v"></b></div>
+      <input type="range" id="ir-az" min="0" max="360" step="1">
+    </div>
+    <div class="ir-slider">
+      <div class="lab"><label for="ir-el">Elevation of observer</label><b id="ir-el-v"></b></div>
+      <input type="range" id="ir-el" min="-90" max="90" step="1">
+    </div>
+  </div>
+
+  <div class="section-label">Lens focal lengths</div>
+  <div class="lens-controls" id="lens-controls"></div>
+
+  <div class="section-label">Maximum range matrix</div>
+  <p class="sim-intro" id="range-note"></p>
+  <div class="table-wrap">
+    <table id="results-table">
+      <thead><tr id="table-head"></tr></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+  <div class="formula-note">
+    <strong>How max range is found.</strong>
+    The size each drone presents at the chosen aspect is measured on its 3D model: projected area <code>A</code> and largest extent. The pixel limit is
+    <code>R_px = (f_mm × D_m) / (N × p_μm)</code> km, with <code>D = √A</code> or the extent.
+    The contrast limit <code>R_snr</code> is the farthest range where the simulated peak signal still clears the minimum SNR over NETD noise, including atmospheric loss <code>τ = e<sup>−βR</sup></code>, diffraction blur and sub-pixel dilution.
+    <strong>Max range = min(R_px, R_snr)</strong>; the line under each value says which one limits it.
+    <br><strong>Default assumption: one pixel is enough to see the drone</strong> (N = 1 on √A, preset “Seen 1”). The drone counts as seen once its critical dimension fills one pixel and that pixel stands out from the noise by the minimum SNR. This is a sighting threshold for a hot, high-contrast target; it is more optimistic than Johnson detection (2 px), and recognition or identification need the R and I presets. Tap a cell to open that drone and lens at its max range below.
+  </div>
+  <div class="formula-card" id="formula-card"></div>
+
+  <div class="section-label" id="ir-stage-anchor">Sensor view at range</div>
+  <p class="sim-intro">What the operator sees on screen for the target, lens and aspect above. Drag the distance from 2 px to a full-screen target, or jump straight to the max range from the matrix.</p>
+  <div class="ir-sliders">
+    <div class="ir-slider">
+      <div class="lab"><label for="ir-lens">Lens</label></div>
+      <select id="ir-lens" class="slim-select"></select>
+    </div>
+    <div class="ir-slider wide">
+      <div class="lab"><label for="ir-t">Distance</label><b id="ir-t-v"></b></div>
+      <input type="range" id="ir-t" min="0" max="1000" step="1">
+      <div class="range-num"><label for="ir-r">or type range</label><input type="number" id="ir-r" min="1" step="10"><span>m</span>
+        <button type="button" class="jump-btn" id="ir-jump">Go to max range</button></div>
+    </div>
+  </div>
+
+  <div class="ir-stage">
+    <figure class="ir-panel">
+      <div class="ir-frame-wrap"><canvas id="ir-frame"></canvas><div id="ir-box" class="ir-box" hidden></div></div>
+      <figcaption id="ir-frame-cap">Full sensor frame</figcaption>
+    </figure>
+    <figure class="ir-panel">
+      <canvas id="ir-zoom" class="px"></canvas>
+      <figcaption id="ir-zoom-cap">Digital zoom</figcaption>
+    </figure>
+  </div>
+  <div class="ir-readout" id="ir-readout"></div>
+
+  <div class="section-label">Viewpoint × distance matrix</div>
+  <p class="sim-intro" id="mx-note"></p>
+  <div class="table-wrap"><table class="mx" id="ir-matrix"></table></div>
+  <div class="legend-row">
+    <span><span class="badge none">–</span> below 1 Johnson cycle</span>
+    <span><span class="badge D">D</span> detection ≥ 1 cycle</span>
+    <span><span class="badge R">R</span> recognition ≥ 4 cycles</span>
+    <span><span class="badge I">I</span> identification ≥ 6.4 cycles</span>
+    <span>Tap a tile to open it in the sensor view.</span>
+  </div>
+
+  <div class="formula-note">
+    <strong>Simulator model.</strong>
+    Airframes are simplified 3D meshes built from the published dimensions above.
+    Skin temperature = ambient + adiabatic recovery heating <code>0.85·v²/(2c<sub>p</sub>)</code> at an assumed cruise speed (Г-3 ≈185 km/h, Г-4 ≈500, Г-5 ≈590, S8000 ≈610).
+    Piston engine: cowling ≈80–120 °C, exhaust stubs ≈340 °C. Turbojet: tail section ≈70 °C, nozzle interior ≈520 °C (seen only from the rear hemisphere), plume optically thin in LWIR (it is much brighter in MWIR 3–5 µm).
+    Background: clear night sky colder than ambient (−3 K at the horizon to −43 K at zenith), ground at ambient +1 K; no sun, clouds or terrain clutter.
+    Sensor: in-band 8–14 µm Planck radiance, supersampled pixel-area integration, diffraction blur <code>σ ≈ 0.45·λ·F#/p</code> (λ = 10 µm), contrast transmission <code>τ = e<sup>−βR</sup></code>, white NETD noise, linear AGC clipped at the 0.5 / 99.5 percentiles with a 2.5 K minimum span and a mild tone curve, so a hot nozzle saturates instead of crushing the airframe to black.
+    Johnson levels use the critical dimension <code>√(projected area)</code>, 50 % probability. A hot nozzle can still be <em>detected</em> below 2 px when its SNR is high; Johnson criteria describe extended targets.
+    Orthographic projection; no turbulence, motion blur, fixed-pattern noise or NUC artefacts.
+  </div>
+
+  <div class="section-label">Target size comparison (front view, to scale)</div>
+  <div class="size-compare">
+    <canvas class="size-canvas" id="size-canvas"></canvas>
+    <div class="size-note">Outlines are schematic; proportions follow published dimensions · Source: Ukraine's Defense Intelligence (HUR), OSINT</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Rear characteristic dim includes thermal exhaust plume:
+  // - Piston engine (Geran-3): exhaust ~250-350°C, moderate IR bloom ~0.5-0.6m effective
+  // - Jet turbine (Geran-4/5, S8000): exhaust 400-600°C, strong IR bloom ~0.7-1.0m effective
+  // Side/top/highside: exhaust plume adds to length but char. dim is already dominated by airframe
+  const targets = [
+    { name: 'Герань-3',  sub: 'piston engine (MADO MD-550)',
+      rear: 0.5, side: 3.5, topdown: 3.0, highside: 2.4,
+      L: 3.5, W: 3.0,
+      rearNote: 'piston exhaust ~300°C',
+      area: { rear: '~0.3–0.5 m²', side: '~1.0–1.5 m²', topdown: '~3–4 m²', highside: '~2–3 m²' } },
+    { name: 'Герань-4',  sub: 'jet turbine',
+      rear: 0.7, side: 3.5, topdown: 3.0, highside: 2.4,
+      L: 3.5, W: 3.0,
+      rearNote: 'jet exhaust ~500°C',
+      area: { rear: '~0.5–0.8 m²', side: '~1.0–1.5 m²', topdown: '~3–4 m²', highside: '~2–3 m²' } },
+    { name: 'Герань-5',  sub: 'jet turbine (Karrar-based)',
+      rear: 0.9, side: 6.0, topdown: 5.5, highside: 4.3,
+      L: 6.5, W: 3.2,
+      rearNote: 'jet exhaust ~500°C',
+      area: { rear: '~0.8–1.2 m²', side: '~2.0–3.0 m²', topdown: '~8–10 m²', highside: '~5–7 m²' } },
+    { name: 'S8000 «Бандероль»', sub: 'jet turbine (Kronstadt CM)',
+      rear: 0.6, side: 5.0, topdown: 2.2, highside: 1.7,
+      L: 5.0, W: 2.2,
+      rearNote: 'jet exhaust ~500°C',
+      area: { rear: '~0.3–0.5 m²', side: '~1.5–2.0 m²', topdown: '~5–6 m²', highside: '~3–4 m²' } }
+  ];
+
+  // Lens sets from Infisense Mini2 640 spec sheet
+  const lenses12 = [
+    { f: 4.1, aperture: 'F1.2', fov: '103.65°×84.24°' },
+    { f: 9.1, aperture: 'F1.0', fov: '48.7°×38.6°', std: true },
+    { f: 13,  aperture: 'F1.0', fov: '31.9°×25.7°' },
+    { f: 18,  aperture: 'F1.1', fov: '24.2°×19.5°' }
+  ];
+  const lenses8 = [
+    { f: 6, aperture: 'F0.8', fov: '48.74°×39.01°' }
+  ];
+
+  let pitchUm = 12;
+  let activeLenses = new Set(lenses12.map(l => l.f));
+  let aspect = 'rear';
+
+  function getCurrentLensSet() { return pitchUm === 8 ? lenses8 : lenses12; }
+
+  const aspectNotes = {
+    rear: 'Characteristic dim: fuselage cross-section + exhaust plume IR bloom · jet exhaust ~500°C, piston ~300°C',
+    side: 'Characteristic dim: fuselage length · wing edge visible',
+    topdown: 'Characteristic dim: wingspan · full delta-wing planform visible',
+    highside: 'Characteristic dim: oblique projected span · optimal engagement geometry'
+  };
+
+  const lensContainer = document.getElementById('lens-controls');
+  const tableHead = document.getElementById('table-head');
+  const tableBody = document.getElementById('table-body');
+
+  // Pitch toggle — switches lens set too
+  document.getElementById('pitch-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-pitch]');
+    if (!btn) return;
+    pitchUm = parseFloat(btn.dataset.pitch);
+    document.querySelectorAll('#pitch-toggle button').forEach(b => b.classList.toggle('active', b === btn));
+    // Reset active lenses to match new pitch sensor's available set
+    activeLenses = new Set(getCurrentLensSet().map(l => l.f));
+    buildLensChips();
+    recalc();
+  });
+
+  function buildLensChips() {
+    lensContainer.innerHTML = '';
+    const lensSet = getCurrentLensSet();
+    // All known focal lengths: from spec + any custom user-added ones
+    const specFs = new Set(lensSet.map(l => l.f));
+    const allFs = Array.from(new Set([...specFs, ...activeLenses])).sort((a,b) => a - b);
+    allFs.forEach(f => {
+      const btn = document.createElement('button');
+      const spec = lensSet.find(l => l.f === f);
+      let label = (f % 1 === 0 ? f : f.toFixed(1)) + 'mm';
+      if (spec) label += ' ' + spec.aperture;
+      if (spec && spec.std) label += ' ★';
+      btn.className = 'lens-chip' + (activeLenses.has(f) ? ' active' : '');
+      btn.textContent = label;
+      if (spec) btn.title = 'FOV: ' + spec.fov;
+      btn.addEventListener('click', () => {
+        if (activeLenses.has(f)) { if (activeLenses.size > 1) activeLenses.delete(f); }
+        else { activeLenses.add(f); }
+        buildLensChips(); recalc();
+      });
+      lensContainer.appendChild(btn);
+    });
+    const custom = document.createElement('div');
+    custom.className = 'custom-lens';
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.placeholder = 'Custom'; inp.min = '1'; inp.step = '0.5';
+    const span = document.createElement('span'); span.textContent = 'mm';
+    custom.appendChild(inp); custom.appendChild(span);
+    lensContainer.appendChild(custom);
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const v = parseFloat(inp.value);
+        if (v > 0 && !activeLenses.has(v)) {
+          activeLenses.add(v); inp.value = ''; buildLensChips(); recalc();
+        }
+      }
+    });
+  }
+
+  function calcRange(focalMm, dimM, nPx, pUm) {
+    return (focalMm * dimM * 1000) / (nPx * pUm);
+  }
+  function formatRange(m) { return m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m'; }
+  function rangeClass(m) { return m >= 5000 ? 'range-good' : m >= 2000 ? 'range-warn' : 'range-danger'; }
+
+  function recalc() { if (irReady) irRefresh(); }
+
+  document.querySelectorAll('#res-h, #res-v').forEach(el => {
+    el.addEventListener('input', recalc);
+  });
+
+  buildLensChips();
+  recalc();
+
+  // === Size comparison infographic (front-view silhouettes, like HUR reference) ===
+  (function drawSizeCompare() {
+    const cvs = document.getElementById('size-canvas');
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    // Scale: pixels per meter — chosen to fit the tallest target (6.5m) in ~260px
+    const S = 40;
+    const gridMax = 7; // meters for y-axis
+
+    // Items to draw: side-view profiles with L (height on canvas) and W (wingspan)
+    const items = [
+      { label: 'Geran-4', L: 3.5, W: 3.0, type: 'delta' },
+      { label: 'Geran-5', L: 6.5, W: 3.2, type: 'conventional' }
+    ];
+
+    const leftMargin = 44;  // for scale labels
+    const rightMargin = 20;
+    const topMargin = 30;
+    const botMargin = 50;   // for labels below
+    const itemGap = 60;
+
+    // Calculate total width
+    let contentW = 0;
+    items.forEach((it, i) => {
+      contentW += it.W * S;
+      if (i < items.length - 1) contentW += itemGap;
+    });
+    const totalW = leftMargin + contentW + rightMargin + 60; // extra for dim lines
+    const totalH = topMargin + gridMax * S + botMargin;
+
+    cvs.width = totalW * dpr;
+    cvs.height = totalH * dpr;
+    cvs.style.width = totalW + 'px';
+    cvs.style.height = totalH + 'px';
+    ctx.scale(dpr, dpr);
+
+    function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+    function render() {
+      const fg = css('--fg');
+      const fgDim = css('--fg-dim');
+      const sil = css('--silhouette');
+      const dimLine = css('--dim-line');
+      const border = css('--border');
+
+      ctx.clearRect(0, 0, totalW, totalH);
+
+      const baseY = topMargin + gridMax * S; // ground line (0 m)
+
+      // Y-axis grid lines and labels
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      for (let m = 0; m <= gridMax; m++) {
+        const y = baseY - m * S;
+        // Grid line
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(leftMargin - 4, y);
+        ctx.lineTo(totalW - rightMargin, y);
+        ctx.stroke();
+        // Label
+        ctx.fillStyle = fgDim;
+        ctx.fillText(m + ' m', leftMargin - 8, y + 3.5);
+      }
+
+      // Draw human figure for scale (180cm)
+      const humanX = leftMargin + 10;
+      const humanH = 1.8 * S;
+      const humanTopY = baseY - humanH;
+      const headR = 6;
+
+      ctx.fillStyle = sil;
+      // Head
+      ctx.beginPath();
+      ctx.arc(humanX, humanTopY + headR, headR, 0, Math.PI * 2);
+      ctx.fill();
+      // Body
+      ctx.beginPath();
+      ctx.moveTo(humanX, humanTopY + headR * 2);
+      ctx.lineTo(humanX, baseY - 28);
+      ctx.lineWidth = 3; ctx.strokeStyle = sil; ctx.stroke();
+      // Arms
+      ctx.beginPath();
+      ctx.moveTo(humanX - 12, humanTopY + headR * 2 + 18);
+      ctx.lineTo(humanX, humanTopY + headR * 2 + 8);
+      ctx.lineTo(humanX + 12, humanTopY + headR * 2 + 18);
+      ctx.lineWidth = 2.5; ctx.stroke();
+      // Legs
+      ctx.beginPath();
+      ctx.moveTo(humanX - 10, baseY);
+      ctx.lineTo(humanX, baseY - 28);
+      ctx.lineTo(humanX + 10, baseY);
+      ctx.lineWidth = 2.5; ctx.stroke();
+
+      // 180 cm label
+      ctx.fillStyle = fgDim;
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('180 cm', humanX + 14, humanTopY + humanH / 2 + 3);
+
+      // Draw each target
+      let x = leftMargin + 50; // start after human figure
+      items.forEach(item => {
+        const w = item.W * S;
+        const h = item.L * S;
+        const cx = x + w / 2;
+        const topY = baseY - h;
+
+        ctx.fillStyle = sil;
+        ctx.beginPath();
+
+        if (item.type === 'delta') {
+          // Delta-wing UAV side profile: pointed nose, thin fuselage, swept wing at rear
+          const fuseW = w * 0.12;
+          // Nose (top)
+          ctx.moveTo(cx, topY);
+          // Right side of nose cone
+          ctx.lineTo(cx + fuseW, topY + h * 0.08);
+          // Fuselage right side down to wing root
+          ctx.lineTo(cx + fuseW, topY + h * 0.65);
+          // Wing sweeps out
+          ctx.lineTo(cx + w/2, topY + h * 0.88);
+          // Wing trailing edge
+          ctx.lineTo(cx + w/2 * 0.9, topY + h * 0.94);
+          // Back to fuselage
+          ctx.lineTo(cx + fuseW * 1.2, topY + h * 0.86);
+          // Tail
+          ctx.lineTo(cx + fuseW * 1.5, topY + h);
+          ctx.lineTo(cx, topY + h * 0.95);
+          // Mirror left
+          ctx.lineTo(cx - fuseW * 1.5, topY + h);
+          ctx.lineTo(cx - fuseW * 1.2, topY + h * 0.86);
+          ctx.lineTo(cx - w/2 * 0.9, topY + h * 0.94);
+          ctx.lineTo(cx - w/2, topY + h * 0.88);
+          ctx.lineTo(cx - fuseW, topY + h * 0.65);
+          ctx.lineTo(cx - fuseW, topY + h * 0.08);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // Conventional layout: cylindrical fuselage, straight mid-mounted wings, tail fins
+          const fuseW = w * 0.08;
+          // Nose (pointed, top)
+          ctx.moveTo(cx, topY);
+          // Nose cone right
+          ctx.quadraticCurveTo(cx + fuseW * 1.5, topY + h * 0.03, cx + fuseW, topY + h * 0.06);
+          // Fuselage right side down to wing
+          ctx.lineTo(cx + fuseW, topY + h * 0.38);
+          // Right wing out
+          ctx.lineTo(cx + w/2, topY + h * 0.42);
+          // Wing trailing edge
+          ctx.lineTo(cx + w/2, topY + h * 0.48);
+          // Back to fuselage
+          ctx.lineTo(cx + fuseW, topY + h * 0.48);
+          // Fuselage continues
+          ctx.lineTo(cx + fuseW, topY + h * 0.85);
+          // Tail fin
+          ctx.lineTo(cx + w/2 * 0.55, topY + h * 0.90);
+          ctx.lineTo(cx + w/2 * 0.55, topY + h * 0.96);
+          ctx.lineTo(cx + fuseW, topY + h * 0.92);
+          // Exhaust
+          ctx.lineTo(cx + fuseW * 1.2, topY + h);
+          ctx.lineTo(cx, topY + h * 0.98);
+          // Mirror left
+          ctx.lineTo(cx - fuseW * 1.2, topY + h);
+          ctx.lineTo(cx - fuseW, topY + h * 0.92);
+          ctx.lineTo(cx - w/2 * 0.55, topY + h * 0.96);
+          ctx.lineTo(cx - w/2 * 0.55, topY + h * 0.90);
+          ctx.lineTo(cx - fuseW, topY + h * 0.85);
+          ctx.lineTo(cx - fuseW, topY + h * 0.48);
+          ctx.lineTo(cx - w/2, topY + h * 0.48);
+          ctx.lineTo(cx - w/2, topY + h * 0.42);
+          ctx.lineTo(cx - fuseW, topY + h * 0.38);
+          ctx.lineTo(cx - fuseW, topY + h * 0.06);
+          ctx.quadraticCurveTo(cx - fuseW * 1.5, topY + h * 0.03, cx, topY);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Wingspan dimension line (horizontal, above wings)
+        const wingDimY = topY - 14;
+        ctx.strokeStyle = dimLine; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x, wingDimY); ctx.lineTo(x + w, wingDimY); ctx.stroke();
+        // End ticks
+        ctx.beginPath(); ctx.moveTo(x, wingDimY - 4); ctx.lineTo(x, wingDimY + 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + w, wingDimY - 4); ctx.lineTo(x + w, wingDimY + 4); ctx.stroke();
+        // Label
+        ctx.fillStyle = fg; ctx.textAlign = 'center';
+        ctx.font = 'bold 11px "JetBrains Mono", monospace';
+        ctx.fillText(item.W.toFixed(1) + ' m', cx, wingDimY - 5);
+
+        // Length dimension line (vertical, right side)
+        const lenDimX = x + w + 10;
+        ctx.strokeStyle = dimLine; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(lenDimX, topY); ctx.lineTo(lenDimX, baseY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(lenDimX - 4, topY); ctx.lineTo(lenDimX + 4, topY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(lenDimX - 4, baseY); ctx.lineTo(lenDimX + 4, baseY); ctx.stroke();
+        // Rotated label
+        ctx.save();
+        ctx.translate(lenDimX + 14, topY + h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = fg;
+        ctx.font = 'bold 11px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('~' + item.L.toFixed(1) + ' m', 0, 0);
+        ctx.restore();
+
+        // Label below
+        ctx.fillStyle = fg;
+        ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.label, cx, baseY + 20);
+
+        x += w + itemGap + 30; // +30 for dim line space
+      });
+    }
+
+    render();
+    const obs = new MutationObserver(render);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render); } catch(e) {}
+  })();
+
+  // ===================== IR SENSOR VIEW SIMULATOR =====================
+  var irReady = false;
+
+  // --- In-band LWIR radiance (8–14 µm), W·m⁻²·sr⁻¹, lookup table ---
+  const IRP = (function () {
+    const C1 = 1.191042e8, C2 = 1.4387752e4, T0 = 100, dT = 0.5, N = 2601;
+    const lut = new Float64Array(N);
+    for (let i = 0; i < N; i++) {
+      const T = T0 + i * dT; let s = 0; const n = 48, l1 = 8, l2 = 14, dl = (l2 - l1) / n;
+      for (let j = 0; j < n; j++) { const l = l1 + (j + 0.5) * dl; s += C1 / (Math.pow(l, 5) * (Math.exp(C2 / (l * T)) - 1)); }
+      lut[i] = s * dl;
+    }
+    function L(T) {
+      const x = (T - T0) / dT;
+      if (x <= 0) return lut[0];
+      if (x >= N - 1) return lut[N - 1];
+      const i = x | 0, fr = x - i; return lut[i] * (1 - fr) + lut[i + 1] * fr;
+    }
+    function Tof(v) {
+      if (v <= lut[0]) return T0;
+      if (v >= lut[N - 1]) return T0 + (N - 1) * dT;
+      let lo = 0, hi = N - 1;
+      while (hi - lo > 1) { const m = (lo + hi) >> 1; if (lut[m] < v) lo = m; else hi = m; }
+      return T0 + (lo + (v - lut[lo]) / (lut[hi] - lut[lo])) * dT;
+    }
+    function dLdT(T) { return L(T + 0.5) - L(T - 0.5); }
+    return { L, Tof, dLdT };
+  })();
+
+  const v3 = {
+    dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+    cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]],
+    sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
+    norm: a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  };
+
+  // --- Airframe builders. Body frame: x forward (nose +), y left, z up; metres ---
+  function deltaAirframe(h, jet) {
+    const S = h.Tskin;
+    const prof = jet
+      ? [[1.75,0],[1.68,0.07],[1.55,0.13],[1.3,0.19],[0.9,0.23],[0.3,0.25],[-0.6,0.25],[-1.3,0.22],[-1.6,0.16],[-1.75,0.13]]
+      : [[1.75,0],[1.68,0.07],[1.55,0.13],[1.3,0.19],[0.9,0.23],[0.3,0.25],[-0.6,0.25],[-1.3,0.24],[-1.55,0.21],[-1.7,0.12],[-1.76,0.0]];
+    h.revolve(prof, { zs: 0.85, T: x => jet ? (x < -1.35 ? 345 : S) : (x < -1.52 ? 395 : x < -1.3 ? 355 : S) });
+    for (const s of [1, -1]) {
+      h.poly([[0.75, 0.18 * s, 0], [-1.2, 1.5 * s, 0], [-1.55, 1.5 * s, 0], [-1.45, 0.2 * s, 0]], S);
+      h.poly([[-1.15, 1.5 * s, -0.22], [-1.55, 1.5 * s, -0.22], [-1.6, 1.5 * s, 0.42], [-1.35, 1.5 * s, 0.42]], S);
+    }
+    if (jet) {
+      h.disc([-1.75, 0, 0], [-1, 0, 0], 0.115, 790, 0.9);
+      h.plume([-1.76, 0, 0], [-1, 0, 0], 2.2, 0.11, 1.2, 760, 0.04);
+    } else {
+      for (const s of [1, -1]) {
+        h.poly([[-1.42, 0.255 * s, -0.02], [-1.56, 0.255 * s, -0.02], [-1.56, 0.255 * s, -0.09], [-1.42, 0.255 * s, -0.09]], 610, 0.85);
+        h.plume([-1.57, 0.26 * s, -0.055], [-1, 0, 0], 0.6, 0.03, 1.5, 560, 0.04);
+      }
+    }
+  }
+  function karrarAirframe(h) {
+    const S = h.Tskin;
+    h.revolve([[3.25,0],[3.15,0.1],[2.9,0.2],[2.5,0.28],[1.8,0.3],[-2.3,0.3],[-2.8,0.24],[-3.1,0.15],[-3.25,0.0]], { T: () => S });
+    for (const s of [1, -1]) {
+      h.poly([[0.65, 0.25 * s, 0], [0.35, 1.6 * s, 0], [0.0, 1.6 * s, 0], [-0.35, 0.25 * s, 0]], S);
+      h.poly([[-2.55, 0.2 * s, 0], [-2.85, 0.95 * s, 0], [-3.05, 0.95 * s, 0], [-3.1, 0.12 * s, 0]], S);
+      h.poly([[-2.45, 0.14 * s, 0.18], [-3.1, 0.1 * s, 0.12], [-3.2, 0.42 * s, 0.75], [-2.9, 0.42 * s, 0.75]], S);
+    }
+    h.revolve([[-1.3,0.04],[-1.45,0.16],[-1.7,0.18],[-2.8,0.18],[-3.0,0.15]], { z0: 0.52, T: x => x < -2.5 ? 430 : x < -1.9 ? 370 : S });
+    h.poly([[-1.7, 0, 0.28], [-2.6, 0, 0.28], [-2.6, 0, 0.38], [-1.7, 0, 0.38]], S);
+    h.disc([-3.0, 0, 0.52], [-1, 0, 0], 0.14, 800, 0.9);
+    h.plume([-3.01, 0, 0.52], [-1, 0, 0], 2.8, 0.13, 1.1, 780, 0.04);
+  }
+  function s8000Airframe(h) {
+    const S = h.Tskin;
+    h.revolve([[2.5,0],[2.4,0.09],[2.15,0.18],[1.8,0.24],[1.3,0.26],[-2.0,0.26],[-2.35,0.2],[-2.5,0.14]], { T: x => x < -1.95 ? 335 : S });
+    for (const s of [1, -1]) h.poly([[0.45, 0.22 * s, 0.05], [-0.2, 1.1 * s, 0.05], [-0.45, 1.1 * s, 0.05], [-0.35, 0.22 * s, 0.05]], S);
+    for (const ang of [45, 135, 225, 315]) {
+      const a = ang * Math.PI / 180, cy = Math.cos(a), sz = Math.sin(a);
+      h.poly([[-1.95, 0.2 * cy, 0.2 * sz], [-2.4, 0.16 * cy, 0.16 * sz], [-2.48, 0.62 * cy, 0.62 * sz], [-2.25, 0.62 * cy, 0.62 * sz]], S);
+    }
+    h.disc([-2.5, 0, 0], [-1, 0, 0], 0.125, 770, 0.9);
+    h.plume([-2.51, 0, 0], [-1, 0, 0], 2.4, 0.12, 1.1, 750, 0.04);
+  }
+  const IR_MODELS = [
+    { v: 51,  L: 3.5, W: 3.0, build: h => deltaAirframe(h, false) },
+    { v: 140, L: 3.5, W: 3.0, build: h => deltaAirframe(h, true) },
+    { v: 165, L: 6.5, W: 3.2, build: karrarAirframe },
+    { v: 170, L: 5.0, W: 2.2, build: s8000Airframe }
+  ];
+
+  function buildModel(idx, Tamb) {
+    const spec = IR_MODELS[idx];
+    const tris = [], plumes = [];
+    const Lsky = IRP.L(Tamb - 30), Lgnd = IRP.L(Tamb + 1);
+    const env = nz => Lgnd + (Lsky - Lgnd) * (nz + 1) / 2;   // reflected surroundings by facing
+    const rad = (T, eps, nz) => eps * IRP.L(T) + (1 - eps) * env(nz);
+    const h = {
+      Tskin: Tamb + 0.85 * spec.v * spec.v / (2 * 1005),
+      revolve(prof, o) {
+        const segs = 20, z0 = o.z0 || 0, zs = o.zs || 1, eps = 0.9;
+        const rings = prof.map(([x, r]) => {
+          const T = o.T(x), ring = [];
+          for (let k = 0; k < segs; k++) {
+            const a = 2 * Math.PI * k / segs, cy = Math.cos(a), sz = Math.sin(a);
+            const n = v3.norm([0, cy, sz / zs]);
+            ring.push({ p: [x, r * cy, z0 + r * sz * zs], L: rad(T, eps, n[2]) });
+          }
+          return ring;
+        });
+        for (let i = 0; i < rings.length - 1; i++) for (let k = 0; k < segs; k++) {
+          const k2 = (k + 1) % segs, a = rings[i][k], b = rings[i][k2], c = rings[i + 1][k2], d = rings[i + 1][k];
+          tris.push({ p: [a.p, b.p, c.p], L: [a.L, b.L, c.L] });
+          tris.push({ p: [a.p, c.p, d.p], L: [a.L, c.L, d.L] });
+        }
+      },
+      poly(pts, T, eps = 0.9) {
+        const n = v3.norm(v3.cross(v3.sub(pts[1], pts[0]), v3.sub(pts[2], pts[0])));
+        const Lf = rad(T, eps, n[2]), Lb = rad(T, eps, -n[2]);
+        for (let i = 1; i < pts.length - 1; i++) tris.push({ p: [pts[0], pts[i], pts[i + 1]], n, Lf, Lb });
+      },
+      disc(c, n, r, T, eps = 0.9) {
+        n = v3.norm(n);
+        const ref = Math.abs(n[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+        const e1 = v3.norm(v3.cross(n, ref)), e2 = v3.cross(n, e1), Lf = rad(T, eps, n[2]), pts = [], segs = 18;
+        for (let k = 0; k < segs; k++) {
+          const t = 2 * Math.PI * k / segs, ct = Math.cos(t), st = Math.sin(t);
+          pts.push([c[0] + r * (ct * e1[0] + st * e2[0]), c[1] + r * (ct * e1[1] + st * e2[1]), c[2] + r * (ct * e1[2] + st * e2[2])]);
+        }
+        for (let k = 0; k < segs; k++) tris.push({ p: [c, pts[k], pts[(k + 1) % segs]], n, Lf, one: true });
+      },
+      plume(start, dir, len, r0, spread, T0, eps) { plumes.push({ start, dir: v3.norm(dir), len, r0, spread, T0, eps }); }
+    };
+    spec.build(h);
+    return { tris, plumes, spec };
+  }
+
+  function viewBasis(az, el) {
+    const a = az * Math.PI / 180, e = el * Math.PI / 180;
+    const c = [Math.cos(e) * Math.cos(a), Math.cos(e) * Math.sin(a), Math.sin(e)]; // towards observer
+    const d = [-c[0], -c[1], -c[2]];
+    const r = [-Math.sin(a), Math.cos(a), 0];
+    return { c, d, r, u: v3.cross(r, d) };
+  }
+  // Apparent background brightness temperature for a line of sight at elevation a (deg)
+  function bgT(a, Tamb) {
+    const sky = Tamb - 3 - 40 * (1 - Math.exp(-Math.max(0, a) / 12));
+    const gnd = Tamb + 1;
+    if (a >= 0.4) return sky;
+    if (a <= -0.4) return gnd;
+    const w = (a + 0.4) / 0.8; return gnd * (1 - w) + sky * w;
+  }
+  function mulberry32(a) {
+    return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+
+  // --- Render one sensor frame (radiance per pixel) ---
+  function renderSensor(M, cam, view, cond, R, seed, statsOnly) {
+    const W = cam.W, H = cam.H, Tamb = cond.Tamb;
+    const ifov = cam.p / (cam.f * 1000);   // rad per pixel
+    const s = R * ifov;                    // metres per pixel at target
+    const { c, d, r, u } = viewBasis(view.az, view.el);
+    const NT = M.tris.length, PX = new Float64Array(NT * 9), TL = new Float64Array(NT * 3), use = new Uint8Array(NT);
+    let mnX = Infinity, mxX = -Infinity, mnY = Infinity, mxY = -Infinity;
+    for (let i = 0; i < NT; i++) {
+      const t = M.tris[i]; let L0, L1, L2;
+      if (t.L) { L0 = t.L[0]; L1 = t.L[1]; L2 = t.L[2]; }
+      else { const fc = v3.dot(t.n, c); if (fc < 0 && t.one) continue; L0 = L1 = L2 = fc >= 0 ? t.Lf : t.Lb; }
+      use[i] = 1; TL[i * 3] = L0; TL[i * 3 + 1] = L1; TL[i * 3 + 2] = L2;
+      for (let k = 0; k < 3; k++) {
+        const q = t.p[k], X = v3.dot(q, r), Y = v3.dot(q, u), Z = v3.dot(q, d), o = i * 9 + k * 3;
+        PX[o] = X; PX[o + 1] = Y; PX[o + 2] = Z;
+        if (X < mnX) mnX = X; if (X > mxX) mxX = X; if (Y < mnY) mnY = Y; if (Y > mxY) mxY = Y;
+      }
+    }
+    let pmnX = mnX, pmxX = mxX, pmnY = mnY, pmxY = mxY;
+    for (const pl of M.plumes) for (const tt of [0, 1]) {
+      const q = [pl.start[0] + pl.dir[0] * pl.len * tt, pl.start[1] + pl.dir[1] * pl.len * tt, pl.start[2] + pl.dir[2] * pl.len * tt];
+      const rr = pl.r0 * (1 + pl.spread * tt) * 2.1, X = v3.dot(q, r), Y = v3.dot(q, u);
+      pmnX = Math.min(pmnX, X - rr); pmxX = Math.max(pmxX, X + rr); pmnY = Math.min(pmnY, Y - rr); pmxY = Math.max(pmxY, Y + rr);
+    }
+    const cx = (mnX + mxX) / 2, cy = (mnY + mxY) / 2;
+    const toU = X => W / 2 + (X - cx) / s, toV = Y => H / 2 - (Y - cy) / s;
+    const sigB = 0.45 * 10 * cam.F / cam.p;
+    const m = 2 + Math.ceil(3 * sigB);
+    const u0 = Math.max(0, Math.floor(toU(pmnX)) - m), u1 = Math.min(W, Math.ceil(toU(pmxX)) + m);
+    const v0 = Math.max(0, Math.floor(toV(pmxY)) - m), v1 = Math.min(H, Math.ceil(toV(pmnY)) + m);
+    const rw = u1 - u0, rh = v1 - v0;
+    const K = Math.max(1, Math.min(24, Math.floor(420 / Math.max(rw, rh))));
+    const HW = rw * K, HH = rh * K, sh = s / K;
+    const zb = new Float32Array(HW * HH).fill(Infinity), rb = new Float32Array(HW * HH), pb = new Float32Array(HW * HH);
+    const hxOf = X => (toU(X) - u0) * K, hyOf = Y => (toV(Y) - v0) * K;
+
+    // Rasterise airframe triangles with z-buffer
+    for (let i = 0; i < NT; i++) {
+      if (!use[i]) continue;
+      const o = i * 9;
+      const x0 = hxOf(PX[o]), y0 = hyOf(PX[o + 1]), z0 = PX[o + 2];
+      const x1 = hxOf(PX[o + 3]), y1 = hyOf(PX[o + 4]), z1 = PX[o + 5];
+      const x2 = hxOf(PX[o + 6]), y2 = hyOf(PX[o + 7]), z2 = PX[o + 8];
+      const area = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+      if (Math.abs(area) < 1e-9) continue;
+      const ia = 1 / area, L0 = TL[i * 3], L1 = TL[i * 3 + 1], L2 = TL[i * 3 + 2];
+      const bx0 = Math.max(0, Math.floor(Math.min(x0, x1, x2))), bx1 = Math.min(HW - 1, Math.ceil(Math.max(x0, x1, x2)));
+      const by0 = Math.max(0, Math.floor(Math.min(y0, y1, y2))), by1 = Math.min(HH - 1, Math.ceil(Math.max(y0, y1, y2)));
+      for (let py = by0; py <= by1; py++) {
+        const yc = py + 0.5;
+        for (let px = bx0; px <= bx1; px++) {
+          const xc = px + 0.5;
+          const w0 = ((x1 - xc) * (y2 - yc) - (x2 - xc) * (y1 - yc)) * ia; if (w0 < 0) continue;
+          const w1 = ((x2 - xc) * (y0 - yc) - (x0 - xc) * (y2 - yc)) * ia; if (w1 < 0) continue;
+          const w2 = 1 - w0 - w1; if (w2 < 0) continue;
+          const z = w0 * z0 + w1 * z1 + w2 * z2, idx = py * HW + px;
+          if (z < zb[idx]) { zb[idx] = z; rb[idx] = w0 * L0 + w1 * L1 + w2 * L2; }
+        }
+      }
+    }
+    // Exhaust plume: optically thin gaussian splats, occluded by airframe
+    const LambT = IRP.L(Tamb);
+    let cap = 0;
+    for (const pl of M.plumes) {
+      cap = Math.max(cap, 0.25 * (IRP.L(pl.T0) - LambT));
+      const NS = 48;
+      for (let k = 0; k < NS; k++) {
+        const tt = (k + 0.5) / NS, dist = tt * pl.len;
+        const q = [pl.start[0] + pl.dir[0] * dist, pl.start[1] + pl.dir[1] * dist, pl.start[2] + pl.dir[2] * dist];
+        const sm = pl.r0 * (1 + pl.spread * tt) * 0.7, Tg = Tamb + (pl.T0 - Tamb) * Math.exp(-2.2 * tt);
+        const a = pl.eps * (IRP.L(Tg) - LambT) * (pl.len / NS) / (sm * 2.5066);
+        const hx = hxOf(v3.dot(q, r)), hy = hyOf(v3.dot(q, u)), Z = v3.dot(q, d);
+        const sg = Math.max(0.6, sm / sh), R3 = Math.ceil(3 * sg), inv = 1 / (2 * sg * sg);
+        const ya = Math.max(0, Math.floor(hy - R3)), yb = Math.min(HH - 1, Math.ceil(hy + R3));
+        const xa = Math.max(0, Math.floor(hx - R3)), xb = Math.min(HW - 1, Math.ceil(hx + R3));
+        for (let py = ya; py <= yb; py++) {
+          const dy = py + 0.5 - hy;
+          for (let px = xa; px <= xb; px++) {
+            const idx = py * HW + px; if (Z >= zb[idx]) continue;
+            const dx = px + 0.5 - hx; pb[idx] += a * Math.exp(-(dx * dx + dy * dy) * inv);
+          }
+        }
+      }
+    }
+    if (cap > 0) for (let i = 0; i < pb.length; i++) if (pb[i] > cap) pb[i] = cap;
+
+    // Background per row, compose sensor frame by area-averaging sub-pixels
+    const rowAlpha = vS => -view.el + Math.atan((H / 2 - vS) * ifov) * 180 / Math.PI;
+    const F = statsOnly ? null : new Float32Array(W * H), bgS = new Float32Array(H);
+    for (let v = 0; v < H; v++) { bgS[v] = IRP.L(bgT(rowAlpha(v + 0.5), Tamb)); if (F) F.fill(bgS[v], v * W, v * W + W); }
+    const bgH = new Float32Array(HH);
+    for (let hy = 0; hy < HH; hy++) bgH[hy] = IRP.L(bgT(rowAlpha(v0 + (hy + 0.5) / K), Tamb));
+    let hits = 0; const KK = K * K;
+    const D = new Float32Array(rw * rh);
+    for (let v = v0; v < v1; v++) for (let uu = u0; uu < u1; uu++) {
+      let sum = 0; const by = (v - v0) * K, bx = (uu - u0) * K;
+      for (let j = 0; j < K; j++) {
+        const row = (by + j) * HW, bgr = bgH[by + j];
+        for (let i2 = 0; i2 < K; i2++) {
+          const idx = row + bx + i2;
+          if (zb[idx] !== Infinity) { sum += rb[idx]; hits++; } else sum += bgr;
+          sum += pb[idx];
+        }
+      }
+      D[(v - v0) * rw + (uu - u0)] = sum / KK - bgS[v];
+    }
+    // Diffraction blur (separable gaussian) on the target-minus-background signal
+    let Db = D;
+    if (sigB > 0.05) {
+      const rad = Math.ceil(3 * sigB), ker = []; let ks = 0;
+      for (let k = -rad; k <= rad; k++) { const w = Math.exp(-k * k / (2 * sigB * sigB)); ker.push(w); ks += w; }
+      for (let k = 0; k < ker.length; k++) ker[k] /= ks;
+      const T1 = new Float32Array(rw * rh); Db = new Float32Array(rw * rh);
+      for (let y = 0; y < rh; y++) for (let x = 0; x < rw; x++) {
+        let acc = 0; for (let k = -rad; k <= rad; k++) { const xx = x + k; if (xx >= 0 && xx < rw) acc += ker[k + rad] * D[y * rw + xx]; }
+        T1[y * rw + x] = acc;
+      }
+      for (let y = 0; y < rh; y++) for (let x = 0; x < rw; x++) {
+        let acc = 0; for (let k = -rad; k <= rad; k++) { const yy = y + k; if (yy >= 0 && yy < rh) acc += ker[k + rad] * T1[yy * rw + x]; }
+        Db[y * rw + x] = acc;
+      }
+    }
+    // Atmospheric contrast transmission
+    const tau = Math.exp(-cond.beta * R / 1000);
+    let peak = 0;
+    for (let v = v0; v < v1; v++) for (let uu = u0; uu < u1; uu++) {
+      const dv = tau * Db[(v - v0) * rw + (uu - u0)];
+      if (Math.abs(dv) > Math.abs(peak)) peak = dv;
+      if (F) F[v * W + uu] = bgS[v] + dv;
+    }
+    // NETD noise
+    const sigmaL = cond.netd / 1000 * IRP.dLdT(Tamb);
+    if (F && sigmaL > 0) {
+      const rnd = mulberry32(seed), n = W * H;
+      for (let i = 0; i < n; i += 2) {
+        const r1 = rnd() || 1e-9, r2 = rnd(), mag = sigmaL * Math.sqrt(-2 * Math.log(r1));
+        F[i] += mag * Math.cos(6.2831853 * r2);
+        if (i + 1 < n) F[i + 1] += mag * Math.sin(6.2831853 * r2);
+      }
+    }
+    const bgc = bgS[H >> 1];
+    const area = hits * sh * sh;
+    return {
+      F, W, H, s, R, tau, sigmaL, area,
+      wpx: (mxX - mnX) / s, hpx: (mxY - mnY) / s, crit: Math.sqrt(area) / s,
+      box: [toU(mnX), toV(mxY), toU(mxX), toV(mnY)],
+      peakDT: IRP.Tof(bgc + peak) - IRP.Tof(bgc),
+      snr: sigmaL > 0 ? Math.abs(peak) / sigmaL : Infinity
+    };
+  }
+
+  // --- AGC and palettes ---
+  function agcRange(res, Tamb) {
+    const F = res.F, n = F.length; let mn = Infinity, mx = -Infinity;
+    for (let i = 0; i < n; i++) { const v = F[i]; if (v < mn) mn = v; if (v > mx) mx = v; }
+    const NB = 4096, hist = new Uint32Array(NB), sc = (NB - 1) / ((mx - mn) || 1);
+    for (let i = 0; i < n; i++) hist[((F[i] - mn) * sc) | 0]++;
+    const pct = q => { const tgt = q * n; let acc = 0; for (let b = 0; b < NB; b++) { acc += hist[b]; if (acc >= tgt) return mn + b / sc; } return mx; };
+    let lo = pct(0.005), hi = pct(0.995);
+    const minSpan = 2.5 * IRP.dLdT(Tamb);
+    if (hi - lo < minSpan) { const mid = (hi + lo) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
+    return [lo, hi];
+  }
+  function buildPal(stops) {
+    const lut = new Uint8ClampedArray(256 * 3);
+    for (let i = 0; i < 256; i++) {
+      const t = i / 255 * (stops.length - 1), k = Math.min(stops.length - 2, Math.floor(t)), fr = t - k;
+      for (let ch = 0; ch < 3; ch++) lut[i * 3 + ch] = stops[k][ch] * (1 - fr) + stops[k + 1][ch] * fr;
+    }
+    return lut;
+  }
+  const PAL = {
+    white: buildPal([[0, 0, 0], [255, 255, 255]]),
+    black: buildPal([[255, 255, 255], [0, 0, 0]]),
+    iron: buildPal([[0, 0, 16], [32, 0, 140], [138, 10, 160], [210, 45, 60], [245, 140, 10], [252, 210, 60], [255, 255, 230]])
+  };
+  const TONE = new Uint8Array(256); for (let i = 0; i < 256; i++) TONE[i] = Math.round(255 * Math.pow(i / 255, 0.8));
+  function paint(cv, res, lohi, pal, x0, y0, w, h) {
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d'), img = ctx.createImageData(w, h), lut = PAL[pal];
+    const lo = lohi[0], k = 255 / (lohi[1] - lohi[0]);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      let g = (res.F[(y0 + y) * res.W + x0 + x] - lo) * k; g = g <= 0 ? 0 : g >= 255 ? 255 : (TONE[g | 0]);
+      const o = (y * w + x) * 4; img.data[o] = lut[g * 3]; img.data[o + 1] = lut[g * 3 + 1]; img.data[o + 2] = lut[g * 3 + 2]; img.data[o + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function johnson(critPx) {
+    const cyc = critPx / 2 + 0.01;
+    if (cyc >= 6.4) return { k: 'I', name: 'Identification', cyc };
+    if (cyc >= 4) return { k: 'R', name: 'Recognition', cyc };
+    if (cyc >= 1) return { k: 'D', name: 'Detection', cyc };
+    return { k: 'none', name: 'Below detection', cyc };
+  }
+
+  // --- UI state ---
+  const PRESETS = [
+    { name: "Rear (6 o'clock)", az: 180, el: 0 },
+    { name: 'Side (3/9 o’clock)', az: 90, el: 0 },
+    { name: 'Top-down (planform)', az: 180, el: 90 },
+    { name: 'High-side (30–45°)', az: 90, el: 40 }
+  ];
+  const irState = { target: 1, f: 9.1, az: 180, el: 0, t: 460 };
+  const $ = id => document.getElementById(id);
+  const elTarget = $('ir-target'), elLens = $('ir-lens'), elPal = $('ir-palette'), elAtm = $('ir-atm'),
+        elAmb = $('ir-amb'), elNetd = $('ir-netd'), elAz = $('ir-az'), elEl = $('ir-el'), elT = $('ir-t'), elR = $('ir-r'),
+        frameCv = $('ir-frame'), zoomCv = $('ir-zoom'), boxEl = $('ir-box'),
+        elMetric = $('crit-metric'), elN = $('n-pixels'), elSNR = $('min-snr'), jBox = $('johnson-presets');
+
+  targets.forEach((t, i) => { const o = document.createElement('option'); o.value = i; o.textContent = t.name + ' · ' + t.sub; elTarget.appendChild(o); });
+  elTarget.value = irState.target;
+
+  function lensList() {
+    const set = getCurrentLensSet();
+    return Array.from(activeLenses).sort((a, b) => a - b).map(f => {
+      const sp = set.find(l => l.f === f);
+      return { f, F: sp ? parseFloat(sp.aperture.slice(1)) : 1.0, fov: sp ? sp.fov : null };
+    });
+  }
+  function syncLensSelect() {
+    const ls = lensList();
+    if (!ls.some(l => l.f === irState.f)) irState.f = (ls.find(l => l.f === 9.1) || ls[Math.min(1, ls.length - 1)]).f;
+    elLens.innerHTML = '';
+    ls.forEach(l => {
+      const o = document.createElement('option'); o.value = l.f;
+      o.textContent = l.f + ' mm · F' + l.F.toFixed(1);
+      elLens.appendChild(o);
+    });
+    elLens.value = String(irState.f);
+  }
+  function camNow() {
+    const W = Math.max(32, Math.min(2048, parseInt($('res-h').value) || 640));
+    const H = Math.max(32, Math.min(2048, parseInt($('res-v').value) || 512));
+    const l = lensList().find(x => x.f === irState.f) || lensList()[0];
+    return { W, H, p: pitchUm, f: l.f, F: l.F };
+  }
+  function condNow() {
+    const amb = parseFloat(elAmb.value);
+    return { Tamb: (isFinite(amb) ? amb : 0) + 273.15, beta: parseFloat(elAtm.value) || 0.2, netd: Math.max(0, parseFloat(elNetd.value) || 0) };
+  }
+  let mCache = { key: '', M: null };
+  function getModel(idx, Tamb) {
+    const k = idx + '|' + Tamb.toFixed(2);
+    if (mCache.key !== k) mCache = { key: k, M: buildModel(idx, Tamb) };
+    return mCache.M;
+  }
+  const dref = idx => Math.max(IR_MODELS[idx].L, IR_MODELS[idx].W);
+  const PX_MIN = 0.5;
+  const pxFromT = (t, W) => PX_MIN * Math.pow(W / PX_MIN, t / 1000);
+  const tFromPx = (px, W) => Math.max(0, Math.min(1000, 1000 * Math.log(px / PX_MIN) / Math.log(W / PX_MIN)));
+  const rangeFor = (px, cam, idx) => dref(idx) * cam.f * 1000 / (px * cam.p);
+  function fmtR(m) { return m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 1 : 2) + ' km' : (m >= 100 ? Math.round(m) : m.toFixed(1)) + ' m'; }
+  function azName(a) {
+    const x = ((a % 360) + 360) % 360;
+    if (x <= 20 || x >= 340) return 'nose-on';
+    if (x >= 160 && x <= 200) return 'tail';
+    if ((x >= 70 && x <= 110) || (x >= 250 && x <= 290)) return 'beam';
+    return (x < 90 || x > 270) ? 'front quarter' : 'rear quarter';
+  }
+
+  const presetBox = $('ir-presets');
+  PRESETS.forEach((p, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = p.name; b.dataset.i = i;
+    b.addEventListener('click', () => { irState.az = p.az; irState.el = p.el; syncControls(); scheduleMain(); scheduleTable(); });
+    presetBox.appendChild(b);
+  });
+  function syncControls() {
+    elAz.value = irState.az; elEl.value = irState.el; elT.value = Math.round(irState.t);
+    presetBox.querySelectorAll('button').forEach(b => {
+      const p = PRESETS[+b.dataset.i]; b.classList.toggle('active', p.az === irState.az && p.el === irState.el);
+    });
+  }
+
+  // --- Main view ---
+  let rafPending = false;
+  function scheduleMain() { if (rafPending) return; rafPending = true; requestAnimationFrame(() => { rafPending = false; renderMain(); }); }
+  function renderMain() {
+    const cam = camNow(), cond = condNow(), idx = irState.target, M = getModel(idx, cond.Tamb);
+    const refPx = pxFromT(irState.t, cam.W), R = rangeFor(refPx, cam, idx);
+    const res = renderSensor(M, cam, { az: irState.az, el: irState.el }, cond, R, 7);
+    const lohi = agcRange(res, cond.Tamb), pal = elPal.value;
+    paint(frameCv, res, lohi, pal, 0, 0, cam.W, cam.H);
+    frameCv.classList.toggle('px', frameCv.clientWidth >= cam.W);
+
+    const ext = Math.max(res.wpx, res.hpx);
+    const cw = Math.min(cam.W, Math.max(24, Math.round(ext * 1.6)));
+    const ch = Math.min(cam.H, Math.max(8, Math.round(cw * cam.H / cam.W)));
+    const x0 = Math.max(0, Math.min(cam.W - cw, Math.round(cam.W / 2 - cw / 2)));
+    const y0 = Math.max(0, Math.min(cam.H - ch, Math.round(cam.H / 2 - ch / 2)));
+    paint(zoomCv, res, lohi, pal, x0, y0, cw, ch);
+
+    if (ext < 28) {
+      const pad = 5, b = res.box;
+      boxEl.style.left = ((b[0] - pad) / cam.W * 100) + '%';
+      boxEl.style.top = ((b[1] - pad) / cam.H * 100) + '%';
+      boxEl.style.width = ((b[2] - b[0] + 2 * pad) / cam.W * 100) + '%';
+      boxEl.style.height = ((b[3] - b[1] + 2 * pad) / cam.H * 100) + '%';
+      boxEl.hidden = false;
+    } else boxEl.hidden = true;
+
+    const j = johnson(res.crit);
+    $('ir-frame-cap').textContent = `Full sensor frame ${cam.W}×${cam.H} · ${cam.f} mm · as on the operator's screen` + (ext < 28 ? ' · green box marks the target' : '');
+    $('ir-zoom-cap').textContent = `Digital zoom ${(cam.W / cw).toFixed(1)}× · ${cw}×${ch} px crop · each block is one sensor pixel`;
+    $('ir-az-v').textContent = `${irState.az}° · ${azName(irState.az)}`;
+    $('ir-el-v').textContent = (irState.el > 0 ? '+' : '') + irState.el + '° · ' + (irState.el > 0 ? 'above' : irState.el < 0 ? 'below' : 'level');
+    $('ir-t-v').textContent = `${fmtR(R)} · ${refPx < 10 ? refPx.toFixed(1) : Math.round(refPx)} px`;
+    if (document.activeElement !== elR) elR.value = Math.round(R);
+    const snr = isFinite(res.snr) ? res.snr.toFixed(res.snr < 10 ? 1 : 0) : '∞';
+    const cr = critNow(), mx = maxRangeFor(idx, cam, cond, { az: irState.az, el: irState.el }, cr);
+    lastMax = mx.R;
+    const sizePx = cr.metric === 'crit' ? res.crit : Math.max(res.wpx, res.hpx);
+    const met = sizePx >= cr.N * 0.995 && (cr.snr <= 0 || res.snr >= cr.snr);
+    $('ir-readout').innerHTML = [
+      ['Range · max', `${fmtR(R)} <span class="lim">max ${mx.R > 0 ? fmtR(mx.R) : '–'} · ${mx.lim}</span>`],
+      ['Criterion', `<span class="${met ? 'ok' : 'bad'}">${met ? 'Met' : 'Not met'}</span> <span class="lim">${cr.metric === 'crit' ? '√A' : 'extent'} ${sizePx.toFixed(1)} of ${cr.N} px</span>`],
+      ['Projected size', `${res.wpx.toFixed(res.wpx < 10 ? 1 : 0)} × ${res.hpx.toFixed(res.hpx < 10 ? 1 : 0)} px`],
+      ['Critical dim √A', `${res.crit.toFixed(1)} px · ${res.area.toFixed(2)} m²`],
+      ['Johnson', `<span class="badge ${j.k}">${j.k === 'none' ? '–' : j.k}</span> ${j.name} · ${j.cyc.toFixed(1)} cyc`],
+      ['Peak ΔT apparent', (res.peakDT >= 0 ? '+' : '') + res.peakDT.toFixed(1) + ' K'],
+      ['Peak SNR · τ', `${snr} <span class="lim">atmosphere passes ${(res.tau * 100).toFixed(0)} %</span>`],
+      ['Ground sample', (res.s * 100 < 100 ? (res.s * 100).toFixed(1) + ' cm' : res.s.toFixed(2) + ' m') + '/px']
+    ].map(([k, v]) => `<div><span class="k">${k}</span><b>${v}</b></div>`).join('');
+  }
+
+  // --- Matrix ---
+  const MX_COLS = [1, 2, 4, 8, 16, 32, 64, 128, 0];   // 0 = whole screen width
+  let mxGen = 0, mxTimer = null;
+  function scheduleMatrix() { clearTimeout(mxTimer); mxTimer = setTimeout(renderMatrix, 150); }
+  function renderMatrix() {
+    const gen = ++mxGen, cam = camNow(), cond = condNow(), idx = irState.target, M = getModel(idx, cond.Tamb);
+    const table = $('ir-matrix'), pal = elPal.value, D = dref(idx);
+    $('mx-note').textContent = `Each column is a distance at which the ${targets[idx].name}'s largest dimension (${D.toFixed(1)} m) would span N pixels on the ${cam.f} mm lens. Each row turns the same drone to a different viewpoint, so the pixels it actually covers change with aspect. Tiles show a crop of the full ${cam.W}×${cam.H} frame; the last column is the whole screen.`;
+    const cols = MX_COLS.map(px => px || cam.W);
+    let html = '<thead><tr><th>Viewpoint</th>' + cols.map((px, ci) =>
+      `<th>${MX_COLS[ci] ? px + ' px' : 'Full ' + px + ' px'}\n${fmtR(rangeFor(px, cam, idx))}</th>`).join('') + '</tr></thead><tbody>';
+    PRESETS.forEach((p, ri) => {
+      html += `<tr><td>${p.name}<span class="target-dim">az ${p.az}° · el ${p.el > 0 ? '+' : ''}${p.el}°</span></td>`;
+      cols.forEach((px, ci) => { html += `<td><canvas class="tile" id="mx-${ri}-${ci}" tabindex="0" aria-label="${p.name} at ${fmtR(rangeFor(px, cam, idx))}"></canvas><div class="tcap" id="mxc-${ri}-${ci}">…</div></td>`; });
+      html += '</tr>';
+    });
+    table.innerHTML = html + '</tbody>';
+    const jobs = [];
+    PRESETS.forEach((p, ri) => cols.forEach((px, ci) => {
+      const cv = $(`mx-${ri}-${ci}`), cap = $(`mxc-${ri}-${ci}`);
+      const open = () => { irState.az = p.az; irState.el = p.el; irState.t = tFromPx(px, cam.W); syncControls(); scheduleMain(); scheduleTable(); $('ir-stage-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      cv.addEventListener('click', open);
+      cv.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+      jobs.push(() => {
+        const R = rangeFor(px, cam, idx);
+        const res = renderSensor(M, cam, p, cond, R, 1000 + ri * 17 + ci);
+        const lohi = agcRange(res, cond.Tamb);
+        let cw, ch;
+        if (!MX_COLS[ci]) { cw = cam.W; ch = cam.H; }
+        else { cw = Math.min(cam.W, Math.max(16, Math.round(px * 1.5))); ch = Math.min(cam.H, Math.max(13, Math.round(cw * 0.8))); }
+        const x0 = Math.max(0, Math.min(cam.W - cw, Math.round(cam.W / 2 - cw / 2)));
+        const y0 = Math.max(0, Math.min(cam.H - ch, Math.round(cam.H / 2 - ch / 2)));
+        paint(cv, res, lohi, pal, x0, y0, cw, ch);
+        cv.classList.toggle('smooth', cw > 88);
+        const j = johnson(res.crit);
+        cap.innerHTML = `${res.wpx < 10 ? res.wpx.toFixed(1) : Math.round(res.wpx)}×${res.hpx < 10 ? res.hpx.toFixed(1) : Math.round(res.hpx)}<span class="badge ${j.k}" title="${j.name}">${j.k === 'none' ? '–' : j.k}</span>`;
+      });
+    }));
+    (function step() {
+      if (gen !== mxGen) return;
+      const t0 = performance.now();
+      while (jobs.length && performance.now() - t0 < 30) jobs.shift()();
+      if (jobs.length) setTimeout(step, 0);
+    })();
+  }
+
+  // --- Max range from the 3D model + criterion ---
+  let lastMax = 0;
+  function critNow() {
+    const N = parseFloat(elN.value), sn = parseFloat(elSNR.value);
+    return { metric: elMetric.value, N: N > 0 ? N : 3, snr: sn >= 0 ? sn : 0 };
+  }
+  const sizeCache = new Map();
+  function projectedSize(idx, cond, view) {
+    const k = [idx, cond.Tamb.toFixed(2), view.az, view.el].join('|');
+    if (sizeCache.has(k)) return sizeCache.get(k);
+    const M = getModel(idx, cond.Tamb), cam = { W: 640, H: 512, p: 12, f: 20, F: 1 };
+    const R = dref(idx) * cam.f * 1000 / (300 * cam.p);           // target ~300 px wide
+    const r = renderSensor(M, cam, view, cond, R, 1, true);
+    const out = { A: r.area, ext: Math.max(r.wpx, r.hpx) * r.s };
+    sizeCache.set(k, out); return out;
+  }
+  const maxCache = new Map();
+  function maxRangeFor(idx, cam, cond, view, cr) {
+    const k = [idx, cam.f, cam.F, cam.p, cam.W, cam.H, cond.Tamb.toFixed(2), cond.beta, cond.netd, view.az, view.el, cr.metric, cr.N, cr.snr].join('|');
+    if (maxCache.has(k)) return maxCache.get(k);
+    const sz = projectedSize(idx, cond, view);
+    const D = cr.metric === 'crit' ? Math.sqrt(sz.A) : sz.ext;
+    const Rpx = D * cam.f * 1000 / (cr.N * cam.p);
+    let out = { R: Rpx, lim: 'pixel-limited', D };
+    if (cr.snr > 0 && cond.netd > 0) {
+      const M = getModel(idx, cond.Tamb);
+      const snrAt = R => renderSensor(M, cam, view, cond, R, 1, true).snr;
+      if (snrAt(Rpx) < cr.snr) {
+        let lo = Math.max(1, Rpx / 2000), hi = Rpx;
+        if (snrAt(lo) < cr.snr) out = { R: 0, lim: 'no contrast', D };
+        else {
+          for (let i = 0; i < 18; i++) { const m = Math.sqrt(lo * hi); if (snrAt(m) >= cr.snr) lo = m; else hi = m; }
+          out = { R: lo, lim: 'contrast-limited', D };
+        }
+      }
+    }
+    if (maxCache.size > 400) maxCache.clear();
+    maxCache.set(k, out); return out;
+  }
+
+  let tblGen = 0, tblTimer = null;
+  function scheduleTable() { clearTimeout(tblTimer); tblTimer = setTimeout(renderTable, 120); }
+  function renderTable() {
+    const gen = ++tblGen, cond = condNow(), cr = critNow(), view = { az: irState.az, el: irState.el };
+    const base = camNow(), lenses = lensList();
+    const atmTxt = elAtm.options[elAtm.selectedIndex].text;
+    $('range-note').textContent = `Viewpoint az ${view.az}° · el ${view.el > 0 ? '+' : ''}${view.el}° · ${cr.metric === 'crit' ? 'critical dim √A' : 'largest extent'} ≥ ${cr.N} px` +
+      (cr.snr > 0 ? ` and peak SNR ≥ ${cr.snr}` : '') + ` · ${atmTxt} /km, ${(cond.Tamb - 273.15).toFixed(0)} °C, NETD ${cond.netd} mK.`;
+    tableHead.innerHTML = '<th>Target</th>' + lenses.map(l => `<th>${l.f} mm${l.fov ? '\n' + l.fov.split('×')[0] : ''}</th>`).join('');
+    tableHead.querySelectorAll('th').forEach(th => th.style.whiteSpace = 'pre-line');
+    tableBody.innerHTML = '';
+    const jobs = [];
+    targets.forEach((t, ti) => {
+      const tr = document.createElement('tr');
+      if (ti === irState.target) tr.className = 'sel-row';
+      const sz = projectedSize(ti, cond, view);
+      tr.innerHTML = `<td>${t.name}<span class="target-dim">${t.sub} · √A ${Math.sqrt(sz.A).toFixed(2)} m · extent ${sz.ext.toFixed(1)} m · ${sz.A.toFixed(2)} m² at this aspect</span></td>`;
+      lenses.forEach(l => {
+        const td = document.createElement('td');
+        td.className = 'cell' + (ti === irState.target && l.f === irState.f ? ' sel' : '');
+        td.tabIndex = 0; td.textContent = '…';
+        const cam = Object.assign({}, base, { f: l.f, F: l.F });
+        let mx = null;
+        const open = () => {
+          if (!mx) return;
+          irState.target = ti; irState.f = l.f; elTarget.value = ti; elLens.value = String(l.f);
+          if (mx.R > 0) irState.t = tFromPx(dref(ti) * l.f * 1000 / (mx.R * cam.p), cam.W);
+          syncControls(); scheduleMain(); scheduleMatrix(); renderTable();
+          $('ir-stage-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        td.addEventListener('click', open);
+        td.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+        jobs.push(() => {
+          mx = maxRangeFor(ti, cam, cond, view, cr);
+          td.classList.add(mx.R <= 0 ? 'range-danger' : rangeClass(mx.R));
+          td.innerHTML = `${mx.R > 0 ? fmtR(mx.R) : '–'}<span class="lim">${mx.lim}</span>`;
+          td.title = `Pixel limit ${fmtR(mx.D * l.f * 1000 / (cr.N * cam.p))}`;
+        });
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
+    renderFormula();
+    (function step() {
+      if (gen !== tblGen) return;
+      const t0 = performance.now();
+      while (jobs.length && performance.now() - t0 < 30) jobs.shift()();
+      if (jobs.length) setTimeout(step, 0);
+    })();
+  }
+
+  // --- Worked range formula for the current selection ---
+  function renderFormula() {
+    const cam = camNow(), cond = condNow(), cr = critNow(), idx = irState.target, view = { az: irState.az, el: irState.el };
+    const sz = projectedSize(idx, cond, view), spec = IR_MODELS[idx];
+    const ifov = cam.p / (cam.f * 1000);              // rad
+    const mrad = (ifov * 1000).toFixed(3);
+    const R1 = D => D / (cr.N * ifov);
+    const pr = presetName(view);
+    const rows = [
+      ['Critical dim √A at this aspect', Math.sqrt(sz.A)],
+      ['Largest projected extent at this aspect', sz.ext],
+      ['Full length (side / top view)', spec.L],
+      ['Wingspan (top / rear view)', spec.W]
+    ];
+    $('formula-card').innerHTML = `
+      <h3>Range formula</h3>
+      <div class="eq">IFOV = p / f = ${cam.p} µm / ${cam.f} mm = <b>${mrad} mrad</b></div>
+      <div class="why">The angle one pixel sees. At range R one pixel covers a patch GSD = R × IFOV on the target.</div>
+      <div class="eq">n = D / (R × IFOV)</div>
+      <div class="why">Pixels across a target of size D at range R.</div>
+      <div class="eq">R_max = D / (N × IFOV) = <b>f × D / (N × p)</b> &nbsp;→&nbsp; R_max [km] = f[mm] × D[m] / (N × p[µm])</div>
+      <div class="why">Farthest range where the target still covers N pixels. Worked out below for ${targets[idx].name}, ${cam.f} mm, N = ${cr.N}, viewpoint ${pr}:</div>
+      <table><tbody>${rows.map(([k, D]) => `<tr><td>${k}</td><td>D = ${D.toFixed(2)} m</td><td>${cam.f} × ${D.toFixed(2)} / (${cr.N} × ${cam.p})</td><td><b>${fmtR(R1(D))}</b></td></tr>`).join('')}</tbody></table>
+      <div class="eq">φ = A / (R × IFOV)² &nbsp;·&nbsp; SNR = φ × τ(R) × ΔL / NEΔL &nbsp;→&nbsp; <b>R_snr = (1 / IFOV) × √(A × τ × ΔL / (SNR_min × NEΔL))</b></div>
+      <div class="why">Beyond the 1-pixel range the drone fills only a fraction φ of one pixel, but that pixel still brightens in proportion to φ. A hot enough point stays visible until its signal sinks into the noise (NEΔL = NETD × dL/dT, ΔL = radiance contrast). This sub-pixel limit is what lets a camera see a glowing point beyond the pixel-count range.</div>`;
+  }
+  function presetName(v) { const p = PRESETS.find(q => q.az === v.az && q.el === v.el); return p ? p.name : `az ${v.az}°, el ${v.el}°`; }
+
+  function irRefresh() { syncLensSelect(); scheduleMain(); scheduleMatrix(); scheduleTable(); }
+
+  elTarget.addEventListener('change', () => { irState.target = +elTarget.value; scheduleMain(); scheduleMatrix(); scheduleTable(); });
+  elLens.addEventListener('change', () => { irState.f = parseFloat(elLens.value); scheduleMain(); scheduleMatrix(); scheduleTable(); });
+  elPal.addEventListener('change', () => { scheduleMain(); scheduleMatrix(); });
+  elAtm.addEventListener('change', () => { scheduleMain(); scheduleMatrix(); scheduleTable(); });
+  [elAmb, elNetd].forEach(e => e.addEventListener('input', () => { scheduleMain(); scheduleMatrix(); scheduleTable(); }));
+  function syncJohnson() { const n = parseFloat(elN.value); jBox.querySelectorAll('button').forEach(b => b.classList.toggle('active', elMetric.value === 'crit' && parseFloat(b.dataset.n) === n)); }
+  [elN, elSNR].forEach(e => e.addEventListener('input', () => { syncJohnson(); scheduleMain(); scheduleTable(); }));
+  elMetric.addEventListener('change', () => { syncJohnson(); scheduleMain(); scheduleTable(); });
+  jBox.addEventListener('click', e => {
+    const b = e.target.closest('button[data-n]'); if (!b) return;
+    elN.value = b.dataset.n; elMetric.value = 'crit'; syncJohnson(); scheduleMain(); scheduleTable();
+  });
+  $('ir-jump').addEventListener('click', () => {
+    if (!(lastMax > 0)) return;
+    const cam = camNow();
+    irState.t = tFromPx(dref(irState.target) * cam.f * 1000 / (lastMax * cam.p), cam.W); syncControls(); scheduleMain();
+  });
+  elAz.addEventListener('input', () => { irState.az = +elAz.value; syncControls(); scheduleMain(); scheduleTable(); });
+  elEl.addEventListener('input', () => { irState.el = +elEl.value; syncControls(); scheduleMain(); scheduleTable(); });
+  elT.addEventListener('input', () => { irState.t = +elT.value; scheduleMain(); });
+  elR.addEventListener('change', () => {
+    const R = parseFloat(elR.value); if (!(R > 0)) return;
+    const cam = camNow(), px = dref(irState.target) * cam.f * 1000 / (R * cam.p);
+    irState.t = tFromPx(px, cam.W); syncControls(); scheduleMain();
+  });
+  try { new ResizeObserver(() => frameCv.classList.toggle('px', frameCv.clientWidth >= frameCv.width)).observe(frameCv); } catch (e) {}
+
+  irReady = true;
+  syncJohnson();
+  syncControls();
+  irRefresh();
+})();
+</script>
+</body>
+</html>
